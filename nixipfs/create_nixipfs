@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+import argparse
+from nixipfs.create_nixipfs import create_nixipfs
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Creates a NixFS v0 from a local path')
+    parser.add_argument('--dir', required=True, type=str)
+    parser.add_argument('--ipfsapi', nargs=2, default=('127.0.0.1', 5001), metavar="IP PORT")
+
+    args = parser.parse_args()
+    create_nixipfs(args.dir, args.ipfsapi)

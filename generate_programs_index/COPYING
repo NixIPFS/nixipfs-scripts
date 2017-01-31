@@ -1,0 +1,4 @@
+generate-programs-index.cc has been copied from
+https://github.com/NixOS/nixos-channel-scripts
+Original Author: Eelco Dolstra
+License: LGPL (assumption based on NixOS/nix)

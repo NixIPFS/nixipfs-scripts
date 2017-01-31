@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+import argparse
+
+from nixipfs.update_binary_cache import update_binary_cache
+
+from nixipfs.defaults import *
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Fetches all .narinfo and .nar files for a release path')
+
+    parser.add_argument('--cache', default=DEFAULT_BINARY_CACHE_URL, type=str)
+    parser.add_argument('--release', required=True, type=str)
+    parser.add_argument('--outdir', required=True, type=str)
+    parser.add_argument('--concurrent', default=DEFAULT_CONCURRENT_DOWNLOADS, type=int)
+    parser.add_argument('--print_only', default=False, type=bool)
+
+    args = parser.parse_args()
+    update_binary_cache(cache=args.cache, release=args.release, outdir=args.outdir, concurrent=args.concurrent, print_only=args.print_only)

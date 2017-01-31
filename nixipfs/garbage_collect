@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+import argparse
+
+from nixipfs.garbage_collect import garbage_collect
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Garbage collects all files not linked from any release')
+
+    parser.add_argument('--cache', required=True, type=str)
+    parser.add_argument('--releases', required=True, type=str, nargs='*')
+
+    args = parser.parse_args()
+    garbage_collect(cache=args.cache, releases=args.releases)
