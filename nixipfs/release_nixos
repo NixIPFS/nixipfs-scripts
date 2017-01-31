@@ -15,7 +15,7 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     hydra = config["hydra"]
     cache = config["cache"]
     target_cache = config["target_cache"]
-    max_threads = 9
+    max_threads = config["max_threads"]
 
     cache_info = {'StoreDir' : '/nix/store', 'WantMassQuery' : '1', 'Priority' : '40' }
 

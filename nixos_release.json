@@ -2,6 +2,7 @@
   "hydra":"https://hydra.nixos.org",
   "cache":"https://cache.nixos.org",
   "target_cache": "/ipns/nix.ipfs.sourcediver.org/binary_cache",
+  "max_threads": 69,
   "releases": [
     {
       "channel": "nixos-16.09-small",
