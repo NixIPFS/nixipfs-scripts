@@ -1,0 +1,17 @@
+{
+  "hydra":"https://hydra.nixos.org",
+  "cache":"https://cache.nixos.org",
+  "target_cache": "/ipns/nix.ipfs.sourcediver.org/binary_cache",
+  "releases": [
+    {
+      "channel": "nixos-16.09-small",
+      "project": "nixos",
+      "jobset": "release-16.09-small"
+    },
+    {
+      "channel": "nixos-16.09",
+      "project": "nixos",
+      "jobset": "release-16.09"
+    }
+  ]
+}
