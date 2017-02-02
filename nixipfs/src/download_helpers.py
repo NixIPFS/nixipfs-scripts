@@ -14,12 +14,15 @@ from nixipfs.nix_helpers import nar_info_from_path, NarInfo
 from nixipfs.utils import ccd
 from nixipfs.defaults import *
 
+class DownloadFailed(Exception):
+    pass
+
 def fetch_json(url):
     req = urllib.request.Request(url, headers = { "Content-Type" : "application/json",
                                                   "Accept" : "application/json" })
     return json.loads(urllib.request.urlopen(req).read().decode('utf8'))
 
-def fetch_file_from_cache(path, binary_cache = DEFAULT_BINARY_CACHE_URL, local_cache = None, force = False):
+def fetch_file_from_cache(path, binary_cache = DEFAULT_BINARY_CACHE_URL, local_cache = None, force = False, tries = DEFAULT_DOWNLOAD_TRIES):
     res = ""
     if not (local_cache == None and force == False):
         local_path = os.path.join(local_cache, path)
@@ -28,13 +31,28 @@ def fetch_file_from_cache(path, binary_cache = DEFAULT_BINARY_CACHE_URL, local_c
                 res = f.read()
     if not len(res):
         url = "{}/{}".format(binary_cache, path) 
-        req = urllib.request.Request(url)
-        res = urllib.request.urlopen(url).read().decode('utf8')
+        for x in range(0, tries):
+            try:
+                req = urllib.request.Request(url)
+                res = urllib.request.urlopen(url).read().decode('utf8')
+                if len(res):
+                    break
+            except (urllib.error.ContentTooShortError, urllib.error.HTTPError, urllib.error.URLError):
+                time.sleep(DEFAULT_HTTP_ERROR_SLEEP)
     return res
 
-def download_file_from_cache(path, dest, binary_cache = DEFAULT_BINARY_CACHE_URL):
+def download_file_from_cache(path, dest, binary_cache = DEFAULT_BINARY_CACHE_URL, tries = DEFAULT_DOWNLOAD_TRIES):
     url = "{}/{}".format(binary_cache, path)
-    urllib.request.urlretrieve(url, dest)
+
+    for x in range(0, tries):
+        holdoff = DEFAULT_HTTP_ERROR_SLEEP*x
+        try:
+            urllib.request.urlretrieve(url, dest)
+            return
+        except (urllib.error.ContentTooShortError, urllib.error.HTTPError, urllib.error.URLError):
+            time.sleep(holdoff)
+    # Only reached if download failed
+    raise DownloadFailed("Failed to download {}".format(path))
 
 def fetch_release_info(hydra_url, project, jobset):
     url = "{}/job/{}/{}/tested/latest-finished".format(hydra_url, project, jobset)

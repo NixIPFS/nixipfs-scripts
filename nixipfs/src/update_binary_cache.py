@@ -17,18 +17,12 @@ def download_worker(binary_cache):
         work = nar_queue.get()
         if work is None:
             break
+        # try a few times to correct a corrupt download
         for x in range(0, DEFAULT_DOWNLOAD_TRIES):
-            holdoff = DEFAULT_HTTP_ERROR_SLEEP*x
-            # work is a list consisting of [path, destination, hash]
             try:
                 download_file_from_cache(work[0], work[1], binary_cache)
-            except urllib.error.ContentTooShortError:
-                print("Could not download {} Retrying in {} s".format(work[0], holdoff))
-                time.sleep(holdoff)
-            except (urllib.error.HTTPError, urllib.error.URLError):
-                print("Could not download {} Retrying in {} s".format(work[0], holdoff))
-                time.sleep(holdoff)
-
+            except DownloadFailed:
+                break
             if os.path.isfile(work[1]):
                 h_res = subprocess.run("nix hash-file --base32 --type {} {}".format(work[2].split(':')[0], work[1]), shell=True, stdout=subprocess.PIPE)
                 if h_res.stdout.decode('utf-8').strip() == work[2].split(':')[1].strip():
@@ -36,8 +30,7 @@ def download_worker(binary_cache):
                 else:
                     os.unlink(work[1])
         if not os.path.isfile(work[1]):
-            print("Giving up on {}".format(work[1]))
-
+            print("Could not download {}".format(work[0]))
         nar_queue.task_done()
 
 def narinfo_worker(cache, local_cache):
@@ -46,14 +39,7 @@ def narinfo_worker(cache, local_cache):
         work = nic.get_work()
         if work is None:
             break
-        for x in range(0, DEFAULT_DOWNLOAD_TRIES):
-            try:
-                narinfo = fetch_file_from_cache(work, cache, local_cache)
-            except (urllib.error.ContentTooShortError, urllib.error.HTTPError, urllib.error.URLError):
-                print("Could not fetch {}. Retrying in {} s".format(work[0], DEFAULT_HTTP_ERROR_SLEEP))
-                time.sleep(DEFAULT_HTTP_ERROR_SLEEP)
-            if len(narinfo):
-                break
+        narinfo = fetch_file_from_cache(work, cache, local_cache)
         nic.turn_in(work, narinfo)
 
 def update_binary_cache(cache, release, outdir, concurrent=DEFAULT_CONCURRENT_DOWNLOADS, print_only=False, cache_info=None):
