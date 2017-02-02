@@ -8,7 +8,7 @@ from glob import glob
 
 from nixipfs.nix_helpers import *
 
-RELEASE_VALID_PATHS=['binary-cache-url', 'git-revision', 'nixexpr.tar.xz', '.iso', 'src-url', 'store-paths.xz']
+RELEASE_VALID_PATHS=['binary-cache-url', 'git-revision', 'nixexprs.tar.xz', '.iso', 'src-url', 'store-paths.xz']
 # ADD_OPTIONS={'raw-leaves': 'true'}
 ADD_OPTIONS={'pin':'false'}
 FILES_OPTIONS={'flush': 'false'}
