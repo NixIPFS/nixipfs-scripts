@@ -10,6 +10,7 @@ import traceback
 from nixipfs.karkinos import *
 from nixipfs.hydra_helpers import *
 from nixipfs.download_helpers import *
+from nixipfs.utils import ccd
 
 # This is very close to that what the NixOS release script does.
 # A general approach to release an arbitrary jobset is still missing but it should be
@@ -31,9 +32,6 @@ def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdi
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "src-url"), "w") as f:
         f.write(k.eval_url)
-
-    with open(os.path.join(out_dir, "git-revision"), "w") as f:
-        f.write(eval_info.git_rev)
 
     if target_cache == None:
         with open(os.path.join(out_dir, "binary-cache-url"), "w") as f:
@@ -87,11 +85,10 @@ def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdi
                 os.remove(os.path.join(expr_dir, 'programs.sqlite-journal'))
                 os.remove(nixexpr_tar)
                 nixexpr = tarfile.open(nixexpr_tar, 'w:xz')
-                cwd = os.getcwd()
-                try:
-                    os.chdir(temp_dir)
+                with ccd(temp_dir):
                     nixexpr.add(os.listdir()[0])
-                finally:
-                    os.chdir(cwd)
                 nixexpr.close()
+
+    with open(os.path.join(out_dir, "git-revision"), "w") as f:
+        f.write(eval_info.git_rev)
     return out_dir
