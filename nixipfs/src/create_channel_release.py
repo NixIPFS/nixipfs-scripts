@@ -54,7 +54,7 @@ def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdi
             k.download_file('nixos.iso_graphical.x86_64-linux', out_dir, tmp_dir=tmp_dir)
             k.download_file('nixos.ova.x86_64-linux', out_dir, tmp_dir=tmp_dir)
     else:
-        k.download_file('tarball', out_dir, 'nixexpr.tar.gz', tmp_dir=tmp_dir)
+        k.download_file('tarball', out_dir, 'nixexprs.tar.gz', tmp_dir=tmp_dir)
 
     if channel.startswith('nixos'):
         nixexpr_tar = os.path.join(out_dir, 'nixexprs.tar.xz')
