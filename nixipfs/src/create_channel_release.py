@@ -71,15 +71,15 @@ def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdi
                 nixexpr.close()
 
                 expr_dir = os.path.join(temp_dir, os.listdir(temp_dir)[0])
+
                 try:
-                    subprocess.run('generate-programs-index {} {} {} {} {}'.format(
+                    subprocess.check_call('generate-programs-index {} {} {} {} {}'.format(
                                     files_cache,
                                     os.path.join(expr_dir, 'programs.sqlite'),
                                     cache,
                                     os.path.join(out_dir, 'store-paths'),
                                     os.path.join(expr_dir,'nixpkgs')),
-                                    shell=True, check=True,
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                    shell=True)
                 except(subprocess.CalledProcessError):
                     raise Exception("Could not execute {}".format("generate-programs-index"))
                 os.remove(os.path.join(expr_dir, 'programs.sqlite-journal'))
