@@ -8,6 +8,7 @@ import bz2
 import subprocess
 import queue
 import threading
+import time
 from shutil import copyfile
 
 from nixipfs.nix_helpers import nar_info_from_path, NarInfo
@@ -30,7 +31,7 @@ def fetch_file_from_cache(path, binary_cache = DEFAULT_BINARY_CACHE_URL, local_c
             with open(local_path, "r") as f:
                 res = f.read()
     if not len(res):
-        url = "{}/{}".format(binary_cache, path) 
+        url = "{}/{}".format(binary_cache, path)
         for x in range(0, tries):
             try:
                 req = urllib.request.Request(url)
