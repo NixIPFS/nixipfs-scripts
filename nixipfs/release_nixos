@@ -2,6 +2,7 @@
 import sys
 import argparse
 import os
+import shutil
 import json
 import jsonschema
 from nixipfs.create_channel_release import create_channel_release
@@ -78,15 +79,20 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
             f.write(nci.to_string())
 
     if gc:
+        for release in releases:
+            if "keep" in release:
+                release_dirs = [ e.rstrip('/') for e in glob(os.path.join(releases_dir, release['channel']) + '/*/')]
+                release_dirs.sort(key=lambda x: os.stat(x).st_ctime)
+                # keep the newest release(s):
+                for x in release_dirs[:-release["keep"]]:
+                    print("Deleting {}".format(x))
+                    shutil.rmtree(x)
+
         release_dirs = []
         for release_name in [ e.rstrip('/') for e in glob(releases_dir + '/*/')]:
             for release_dir in [ e.rstrip('/') for e in glob(release_name + '/*/')]:
                 release_dirs.append(release_dir)
-        garbage_paths = garbage_collect.find_garbage(binary_cache_dir, release_dirs)
-        for g in garbage_paths:
-            if os.path.isfile(os.path.join(binary_cache_dir, g)):
-                print("GC: deleting {}".format(g))
-                os.unlink(os.path.join(binary_cache_dir, g))
+        garbage_collect(binary_cache_dir, release_dirs)
 
     if not (print_only or no_ipfs):
         create_nixipfs(outdir, ipfsapi)
