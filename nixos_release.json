@@ -5,14 +5,16 @@
   "max_threads": 69,
   "releases": [
     {
-      "channel": "nixos-16.09-small",
+      "channel": "nixos-17.03-small",
       "project": "nixos",
-      "jobset": "release-16.09-small"
+      "jobset": "release-17.03-small",
+      "keep": 3
     },
     {
-      "channel": "nixos-16.09",
+      "channel": "nixos-17.03",
       "project": "nixos",
-      "jobset": "release-16.09"
+      "jobset": "release-17.03",
+      "keep": 3
     }
   ]
 }
