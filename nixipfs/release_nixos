@@ -3,6 +3,7 @@ import sys
 import argparse
 import os
 import json
+import jsonschema
 from nixipfs.create_channel_release import create_channel_release
 from nixipfs.create_nixipfs import create_nixipfs
 from nixipfs.garbage_collect import garbage_collect
@@ -10,12 +11,36 @@ from nixipfs.update_binary_cache import update_binary_cache
 from nixipfs.nix_helpers import NarInfo
 from glob import glob
 
+config_schema = {
+    "$schema": "http://json-schema.org/schema#",
+    "type" : "object",
+    "required" : ["hydra", "cache", "target_cache", "releases" ],
+    "properties": {
+        "hydra": {"type": "string", "format": "uri"},
+        "cache": {"type": "string", "format": "uri"},
+        "target_cache": {"type": "string"},
+        "max_threads": {"type": "integer"},
+        "releases": {"type": "array",
+                     "items": {
+                         "type": "object",
+                         "required" : [ "channel", "project", "jobset" ],
+                         "properties" : {
+                             "channel": {"type": "string"},
+                             "project": {"type": "string"},
+                             "jobset" : {"type": "string"},
+                             "keep"   : {"type": "integer", "minimum": 1}
+                         }
+                     }
+        }
+    }
+}
+
 def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     releases = config["releases"]
     hydra = config["hydra"]
     cache = config["cache"]
     target_cache = config["target_cache"]
-    max_threads = config["max_threads"]
+    max_threads = config.get("max_threads", 7)
 
     cache_info = {'StoreDir' : '/nix/store', 'WantMassQuery' : '1', 'Priority' : '40' }
 
@@ -76,6 +101,11 @@ if __name__ == "__main__":
     parser.add_argument('--no_ipfs', action='store_true')
     parser.add_argument('--config', required=True)
     args = parser.parse_args()
+
+    # Check schema first
+    jsonschema.Draft4Validator.check_schema(config_schema)
+
     with open(args.config, "r") as f:
         config = json.load(f)
+    jsonschema.Draft4Validator(config_schema).validate(config)
     release_nixos(outdir=args.dir, tmpdir=args.tmpdir, ipfsapi=args.ipfsapi, print_only=args.print_only, no_ipfs=args.no_ipfs, gc=args.gc, config=config)
