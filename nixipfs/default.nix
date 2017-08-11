@@ -11,6 +11,7 @@ pythonPackages.buildPythonPackage rec {
   propagatedBuildInputs = with pythonPackages; [
     python
     ipfsapi
+    jsonschema
     nixUnstable
     generate_programs_index
   ];
