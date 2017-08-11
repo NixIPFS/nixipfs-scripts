@@ -118,6 +118,6 @@ def create_nixipfs(local_dir, ipfs_api):
     print('pinning...')
     api.pin_add(nixfs_hash)
     ret = api.name_publish('/ipfs/' + nixfs_hash, lifetime="2h")
-    print('published {} to {}'.format(ret['Value'], ret['Name']))
+    print('published {} to /ipns/{}'.format(ret['Value'], ret['Name']))
     with open(hash_cache_file, 'w') as f:
         f.write("\n".join([ "{}:{}".format(k,v) for k,v in hash_cache.items() ]))
