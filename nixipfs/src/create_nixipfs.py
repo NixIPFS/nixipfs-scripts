@@ -5,12 +5,17 @@ import contextlib
 import hashlib
 import time
 from glob import glob
+from progress.bar import Bar
 
 from nixipfs.nix_helpers import *
 
 RELEASE_VALID_PATHS=['binary-cache-url', 'git-revision', 'nixexprs.tar.xz', '.iso', 'src-url', 'store-paths.xz']
 ADD_OPTIONS={'pin':'false', 'raw-leaves': 'true'}
 FILES_OPTIONS={'flush': 'false'}
+
+class LJustBar(Bar):
+    def __init__(self, message=None, width=16, **kwargs):
+        super(Bar, self).__init__(message.ljust(max(width, len(message))), **kwargs)
 
 # TODO: upstream this to ipfsapi
 def files_flush(api, path, **kwargs):
@@ -28,20 +33,28 @@ def add_binary_cache(api, local_dir, mfs_dir, hash_cache):
     api.files_mkdir(mfs_nar_dir)
 
     nar_files = [ e for e in os.listdir(nar_dir) if '.nar' in e ]
+    bar = LJustBar('Adding .nar', max=len(nar_files))
     for idx, nar in enumerate(nar_files):
+        bar.next()
         if hash_cache.get(nar) is None:
             nar_path = os.path.join(nar_dir, nar)
             hash_cache.update({ nar : api.add(nar_path, recursive=False, opts=ADD_OPTIONS)['Hash']})
+    bar.finish()
+
+    bar = LJustBar('Copying .nar', max=len(nar_files))
     for idx, nar in enumerate(sorted(nar_files)):
-        print("files cp {}/{}".format(idx+1, len(nar_files)))
+        bar.next()
         api.files_cp("/ipfs/" + hash_cache[nar], os.path.join(mfs_nar_dir, nar), opts=FILES_OPTIONS)
+    bar.finish()
 
     if os.path.isfile(os.path.join(binary_cache_dir, 'nix-cache-info')):
         api.files_cp("/ipfs/" + api.add(os.path.join(binary_cache_dir, 'nix-cache-info'), opts=ADD_OPTIONS)['Hash'],
                                         os.path.join(mfs_binary_cache_dir, 'nix-cache-info'), opts=FILES_OPTIONS)
 
     narinfo_files = [ e for e in os.listdir(binary_cache_dir) if e.endswith('.narinfo') ]
+    bar = LJustBar('Adding .narinfo', max=len(narinfo_files))
     for idx, nip in enumerate(narinfo_files):
+        bar.next()
         ni_hash = hash_cache.get(nip)
         if ni_hash is None:
             with open(os.path.join(binary_cache_dir, nip), 'r') as f:
@@ -51,9 +64,13 @@ def add_binary_cache(api, local_dir, mfs_dir, hash_cache):
                 f.write("\n".join(ni.dump()+['']))
             ni_hash = api.add(os.path.join(binary_cache_dir, nip), recursive=False, opts=ADD_OPTIONS)['Hash']
             hash_cache.update({nip : ni_hash})
+    bar.finish()
+
+    bar = LJustBar('Copying .narinfo', max=len(narinfo_files))
     for idx, nip in enumerate(sorted(narinfo_files)):
-        print("cp {}/{}".format(idx+1, len(narinfo_files)))
+        bar.next()
         api.files_cp("/ipfs/" + hash_cache[nip], os.path.join(mfs_binary_cache_dir, nip), opts=FILES_OPTIONS)
+    bar.finish()
     files_flush(api, mfs_binary_cache_dir)
     return api.files_stat(mfs_binary_cache_dir)['Hash']
 
@@ -67,7 +84,10 @@ def add_nixos_release(api, local_dir, mfs_dir, hash_cache):
     else:
         api.files_mkdir(mfs_dir, parents=True)
         file_hashes = {}
-        for f in [ x for x in os.listdir(local_dir) if [ y for y in RELEASE_VALID_PATHS if y in x ]]:
+        files = [ x for x in os.listdir(local_dir) if [ y for y in RELEASE_VALID_PATHS if y in x ]]
+        bar = LJustBar('Adding file', max=len(files))
+        for f in files:
+            bar.next()
             file_path = os.path.join(local_dir, f)
             if hash_cache.get(f) is not None:
                 file_hashes.update({ f : hash_cache[f] })
@@ -76,8 +96,13 @@ def add_nixos_release(api, local_dir, mfs_dir, hash_cache):
                 file_hashes.update({ f : h})
                 if f.endswith(".iso") or f.endswith(".ova"):
                     hash_cache.update({f : h})
+        bar.finish()
+
+        bar = LJustBar('Adding file', max=len(file_hashes))
         for name, obj in file_hashes.items():
+            bar.next()
             api.files_cp("/ipfs/" + obj, os.path.join(mfs_dir, name), opts=FILES_OPTIONS)
+        bar.finish()
         add_binary_cache(api, local_dir, mfs_dir, hash_cache)
         with open(hash_file, 'w') as f:
             f.write(api.files_stat(mfs_dir)['Hash'].strip())
@@ -104,11 +129,11 @@ def create_nixipfs(local_dir, ipfs_api):
     # Add all releases
     for release_name in [ e.rstrip('/') for e in glob(releases_dir + '/*/')]:
         for release_dir in [ e.rstrip('/') for e in glob(release_name + '/*/')]:
-            print('adding release...')
+            print('adding release: {}'.format(os.path.basename(release_dir)))
             add_nixos_release(api, release_dir, os.path.join(nixfs_dir, 'releases', os.path.basename(release_name), os.path.basename(release_dir)), hash_cache)
     # Add all channels
     for channel_dir in [ e.rstrip('/') for e in glob(channels_dir + '/*/')]:
-        print('adding channel/release...')
+        print('adding channel: {}'.format(os.path.basename(channel_dir)))
         add_nixos_release(api, channel_dir, os.path.join(nixfs_dir, 'channels', os.path.basename(channel_dir)), hash_cache)
 
     nixfs_hash = api.files_stat(nixfs_dir)['Hash']
