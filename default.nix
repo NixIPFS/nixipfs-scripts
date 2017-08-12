@@ -14,9 +14,10 @@ rec {
       };
     });
   };
-
+  pythonPackages = pkgs.python35Packages;
+  progress = pkgs.callPackage ./progress/default.nix { pythonPackages = pythonPackages; };
   generate_programs_index = import ./generate_programs_index/default.nix { inherit pkgs; };
-  nixipfs = import ./nixipfs/default.nix { inherit pkgs generate_programs_index; };
+  nixipfs = import ./nixipfs/default.nix { inherit pkgs generate_programs_index progress pythonPackages; };
   nixipfsEnv = pkgs.stdenv.mkDerivation rec {
     name = "nixipfs-env";
     version = "0.0.0.1";

@@ -1,6 +1,7 @@
 { pkgs ? (import ./../pkgs.nix),
   generate_programs_index ? (import ./../generate_programs_index {}),
-  pythonPackages ? pkgs.python35Packages,
+  pythonPackages,
+  progress
 }:
 with pkgs;
 
@@ -14,5 +15,6 @@ pythonPackages.buildPythonPackage rec {
     jsonschema
     nixUnstable
     generate_programs_index
+    progress
   ];
 }
