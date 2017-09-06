@@ -80,14 +80,14 @@ def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdi
                                     os.path.join(out_dir, 'store-paths'),
                                     os.path.join(expr_dir,'nixpkgs')),
                                     shell=True)
+                    os.remove(os.path.join(expr_dir, 'programs.sqlite-journal'))
+                    os.remove(nixexpr_tar)
+                    nixexpr = tarfile.open(nixexpr_tar, 'w:xz')
+                    with ccd(temp_dir):
+                        nixexpr.add(os.listdir()[0])
+                    nixexpr.close()
                 except(subprocess.CalledProcessError):
-                    raise Exception("Could not execute {}".format("generate-programs-index"))
-                os.remove(os.path.join(expr_dir, 'programs.sqlite-journal'))
-                os.remove(nixexpr_tar)
-                nixexpr = tarfile.open(nixexpr_tar, 'w:xz')
-                with ccd(temp_dir):
-                    nixexpr.add(os.listdir()[0])
-                nixexpr.close()
+                    print("Could not execute {}".format("generate-programs-index"))
 
     with open(os.path.join(out_dir, "git-revision"), "w") as f:
         f.write(eval_info.git_rev)
