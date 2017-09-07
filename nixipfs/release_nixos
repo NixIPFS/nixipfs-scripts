@@ -21,6 +21,7 @@ config_schema = {
         "cache": {"type": "string", "format": "uri"},
         "target_cache": {"type": "string"},
         "max_threads": {"type": "integer"},
+        "max_ipfs_threads": {"type": "integer"},
         "releases": {"type": "array",
                      "items": {
                          "type": "object",
@@ -70,7 +71,7 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
         channel_link = os.path.join(channel_dir, release['channel'])
         if os.path.islink(channel_link):
             os.unlink(channel_link)
-        os.symlink(path, channel_link)
+        os.symlink(os.path.join("../releases", release['channel'], os.path.basename(path)), channel_link)
 
     if not os.path.isfile(os.path.join(binary_cache_dir, 'nix-cache-info')):
         nci = NarInfo()
