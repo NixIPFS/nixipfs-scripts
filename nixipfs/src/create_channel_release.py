@@ -46,7 +46,7 @@ def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdi
     with lzma.open(os.path.join(out_dir, 'store-paths.xz'), 'w') as f:
         f.write("\n".join(set(store_paths)).encode('utf-8'))
 
-    if channel.startswith('nixos'):
+    if channel.startswith('nixos') or channel.startswith('nixpkgs-'):
         k.download_file('nixos.channel', out_dir, 'nixexprs.tar.xz', tmp_dir=tmp_dir)
         k.download_file('nixos.iso_minimal.x86_64-linux', out_dir, tmp_dir=tmp_dir)
         if not channel.endswith('-small'):
@@ -56,7 +56,7 @@ def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdi
     else:
         k.download_file('tarball', out_dir, 'nixexprs.tar.gz', tmp_dir=tmp_dir)
 
-    if channel.startswith('nixos'):
+    if channel.startswith('nixos') or channel.startswith('nixpkgs-'):
         nixexpr_tar = os.path.join(out_dir, 'nixexprs.tar.xz')
         with tarfile.open(nixexpr_tar, "r:xz") as nixexpr:
             if any([s for s in nixexpr.getnames() if 'programs.sqlite' in s]):
