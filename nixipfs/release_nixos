@@ -32,6 +32,7 @@ config_schema = {
                              "channel": {"type": "string"},
                              "project": {"type": "string"},
                              "jobset" : {"type": "string"},
+                             "job"    : {"type": "string"},
                              "keep"   : {"type": "integer", "minimum": 1}
                          }
                      }
@@ -61,6 +62,7 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
                                       hydra   = hydra,
                                       project = release['project'],
                                       jobset  = release['jobset'],
+                                      job     = release['job'],
                                       cache   = cache,
                                       outdir  = releases_dir,
                                       tmpdir  = tmpdir,

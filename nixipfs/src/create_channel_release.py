@@ -15,8 +15,8 @@ from nixipfs.utils import ccd
 # This is very close to that what the NixOS release script does.
 # A general approach to release an arbitrary jobset is still missing but it should be
 # easier to extend now with the Karkinos class and helper functions
-def create_channel_release(channel, hydra, project, jobset, cache, outdir, tmpdir, target_cache=None):
-    release_info = ReleaseInfo(fetch_release_info(hydra, project, jobset))
+def create_channel_release(channel, hydra, project, jobset, job, cache, outdir, tmpdir, target_cache=None):
+    release_info = ReleaseInfo(fetch_release_info(hydra, project, jobset, job))
     k = Karkinos(hydra, release_info.eval_id)
     eval_info = EvalInfo(k.fetch_eval_info())
     store_paths = k.fetch_store_paths()

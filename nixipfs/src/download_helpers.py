@@ -55,8 +55,8 @@ def download_file_from_cache(path, dest, binary_cache = DEFAULT_BINARY_CACHE_URL
     # Only reached if download failed
     raise DownloadFailed("Failed to download {}".format(path))
 
-def fetch_release_info(hydra_url, project, jobset):
-    url = "{}/job/{}/{}/tested/latest-finished".format(hydra_url, project, jobset)
+def fetch_release_info(hydra_url, project, jobset, job):
+    url = "{}/job/{}/{}/{}/latest-finished".format(hydra_url, project, jobset, job)
     return fetch_json(url)
 
 def fetch_store_path(path, dest_file, binary_cache = DEFAULT_BINARY_CACHE_URL, tmp_dir=os.getcwd()):

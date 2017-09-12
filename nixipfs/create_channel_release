@@ -9,11 +9,19 @@ if __name__ == "__main__":
     parser.add_argument('--hydra', default=DEFAULT_HYDRA, type=str)
     parser.add_argument('--project', required=True, type=str)
     parser.add_argument('--jobset', required=True, type=str)
+    parser.add_argument('--job', required=True, type=str)
     parser.add_argument('--cache', default=DEFAULT_BINARY_CACHE_URL, type=str)
     parser.add_argument('--target_cache', default=DEFAULT_BINARY_CACHE_URL, type=str)
     parser.add_argument('--outdir', required=True, type=str)
     parser.add_argument('--tmpdir', default='.', type=str)
     args = parser.parse_args()
-    ret = create_channel_release(channel=args.channel, hydra=args.hydra, project=args.project, jobset=args.jobset,
-                                 cache=args.cache, outdir=args.outdir, tmpdir=args.tmpdir, target_cache=args.target_cache)
+    ret = create_channel_release(channel=args.channel,
+                                 hydra=args.hydra,
+                                 project=args.project,
+                                 jobset=args.jobset,
+                                 job=args.job,
+                                 cache=args.cache,
+                                 outdir=args.outdir,
+                                 tmpdir=args.tmpdir,
+                                 target_cache=args.target_cache)
     print(ret)
