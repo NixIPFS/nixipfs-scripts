@@ -5,6 +5,8 @@ import os
 import shutil
 import json
 import jsonschema
+import time
+import datetime
 from nixipfs.create_channel_release import create_channel_release
 from nixipfs.create_nixipfs import create_nixipfs
 from nixipfs.garbage_collect import garbage_collect
@@ -50,6 +52,7 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     binary_cache_dir  = os.path.join(outdir, 'binary_cache')
     channel_dir = os.path.join(outdir, 'channels')
     releases_dir = os.path.join(outdir, 'releases')
+    lastsync_file = os.path.join(outdir, 'lastsync')
     os.makedirs(channel_dir, exist_ok=True)
     os.makedirs(releases_dir, exist_ok=True)
 
@@ -97,6 +100,9 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
 
     if not (print_only or no_ipfs):
         create_nixipfs(outdir, ipfsapi)
+
+    with open(lastsync_file, 'w') as f:
+        f.write("{},{}".format(int(time.time()), datetime.datetime.now().isoformat()))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Release all the things! (NixOS)')
