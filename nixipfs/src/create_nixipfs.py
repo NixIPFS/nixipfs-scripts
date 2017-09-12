@@ -5,17 +5,13 @@ import contextlib
 import hashlib
 import time
 from glob import glob
-from progress.bar import Bar
 
 from nixipfs.nix_helpers import *
+from nixipfs.utils import LJustBar
 
 RELEASE_VALID_PATHS=['binary-cache-url', 'git-revision', 'nixexprs.tar.xz', '.iso', 'src-url', 'store-paths.xz']
 ADD_OPTIONS={'pin':'false', 'raw-leaves': 'true'}
 FILES_OPTIONS={'flush': 'false'}
-
-class LJustBar(Bar):
-    def __init__(self, message=None, width=16, **kwargs):
-        super(Bar, self).__init__(message.ljust(max(width, len(message))), **kwargs)
 
 # TODO: upstream this to ipfsapi
 def files_flush(api, path, **kwargs):
