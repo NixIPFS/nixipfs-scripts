@@ -1,20 +1,57 @@
 {
-  "hydra":"https://hydra.nixos.org",
-  "cache":"https://cache.nixos.org",
-  "target_cache": "/ipns/nix.ipfs.sourcediver.org/binary_cache",
-  "max_threads": 69,
-  "releases": [
-    {
-      "channel": "nixos-17.03-small",
-      "project": "nixos",
-      "jobset": "release-17.03-small",
-      "keep": 3
-    },
-    {
-      "channel": "nixos-17.03",
-      "project": "nixos",
-      "jobset": "release-17.03",
-      "keep": 3
-    }
-  ]
+    "cache": "https://cache.nixos.org",
+    "hydra": "https://hydra.nixos.org",
+    "max_threads": 69,
+    "releases": [
+        {
+            "channel": "nixos-17.03-small",
+            "job": "tested",
+            "jobset": "release-17.03-small",
+            "keep": 7,
+            "project": "nixos"
+        },
+        {
+            "channel": "nixos-17.03",
+            "job": "tested",
+            "jobset": "release-17.03",
+            "keep": 7,
+            "project": "nixos"
+        },
+        {
+            "channel": "nixos-17.09-small",
+            "job": "tested",
+            "jobset": "release-17.09-small",
+            "keep": 7,
+            "project": "nixos"
+        },
+        {
+            "channel": "nixos-17.09",
+            "job": "tested",
+            "jobset": "release-17.09",
+            "keep": 7,
+            "project": "nixos"
+        },
+        {
+            "channel": "nixos-unstable-small",
+            "job": "tested",
+            "jobset": "unstable-small",
+            "keep": 7,
+            "project": "nixos"
+        },
+        {
+            "channel": "nixos-unstable",
+            "job": "tested",
+            "jobset": "trunk-combined",
+            "keep": 7,
+            "project": "nixos"
+        },
+        {
+            "channel": "nixpkgs-unstable",
+            "job": "unstable",
+            "jobset": "trunk",
+            "keep": 7,
+            "project": "nixpkgs"
+        }
+    ],
+    "target_cache": "https://cache.rrza.de"
 }
