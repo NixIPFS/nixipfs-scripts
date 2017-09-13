@@ -15,7 +15,7 @@ rec {
     #  };
     #});
   };
-  pythonPackages = pkgs.python35Packages;
+  pythonPackages = pkgs.python36Packages;
   progress = pkgs.callPackage ./progress/default.nix { pythonPackages = pythonPackages; };
   generate_programs_index = import ./generate_programs_index/default.nix { inherit pkgs; };
   nixipfs = import ./nixipfs/default.nix { inherit pkgs generate_programs_index progress pythonPackages; };
