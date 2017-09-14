@@ -26,17 +26,19 @@ VALID_URL_SCHEMES = [ "http:", "https:", "ftp:", "mirror:" ]
 failed_entries_l = threading.Lock()
 failed_entries = []
 
-def create_mirror_dirs(target_dir):
+def create_mirror_dirs(target_dir, revision):
     md5_path = os.path.join(target_dir, "md5")
     sha1_path = os.path.join(target_dir, "sha1")
     sha256_path = os.path.join(target_dir, "sha256")
     sha512_path = os.path.join(target_dir, "sha512")
     name_path = os.path.join(target_dir, "by-name")
+    revision_path = os.path.join(target_dir, "revisions", revision)
     os.makedirs(md5_path, exist_ok=True)
     os.makedirs(sha1_path, exist_ok=True)
     os.makedirs(sha256_path, exist_ok=True)
     os.makedirs(sha512_path, exist_ok=True)
     os.makedirs(name_path, exist_ok=True)
+    os.makedirs(revision_path, exist_ok=True)
 
 def check_presence(target_dir, value):
     paths = [
@@ -48,7 +50,7 @@ def check_presence(target_dir, value):
     ]
     return [ path for path in paths if os.path.exists(path) ]
 
-def mirror_file(target_dir, path, name):
+def mirror_file(target_dir, path, name, revision):
     make_path = lambda x: os.path.join(target_dir, x)
 
     md5_16 = nix_hash(path, hash_type="md5", base="base16")
@@ -78,8 +80,11 @@ def mirror_file(target_dir, path, name):
     with ccd(os.path.join(target_dir, "by-name")):
         if not os.path.exists(name):
             os.symlink(os.path.relpath(main_file), name)
+    with ccd(os.path.join(target_dir, "revisions", revision)):
+        if not os.path.exists(sha512_16):
+            os.symlink(os.path.relpath(main_file), sha512_16)
 
-def download_worker(target_dir):
+def download_worker(target_dir, revision):
     global download_queue
     while True:
         work = download_queue.get()
@@ -87,7 +92,7 @@ def download_worker(target_dir):
             break
         try:
             res = nix_prefetch_url(work['url'], work['hash'], work['type'])
-            mirror_file(target_dir, res['path'], work['name'])
+            mirror_file(target_dir, res['path'], work['name'], revision)
             nix_store_delete(res['path'])
         except DownloadFailed:
             append_failed_entry(work)
@@ -121,7 +126,7 @@ def nix_store_delete(path):
 def mirror_tarballs(target_dir, git_repo, git_revision, concurrent=DEFAULT_CONCURRENT_DOWNLOADS):
     global failed_entries
     global download_queue
-    create_mirror_dirs(target_dir)
+    create_mirror_dirs(target_dir, git_revision)
     download_queue = queue.Queue()
     threads = []
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -146,7 +151,7 @@ def mirror_tarballs(target_dir, git_repo, git_revision, concurrent=DEFAULT_CONCU
         else:
             download_queue.put(entry)
     for i in range(concurrent):
-        t = threading.Thread(target=download_worker, args=(target_dir, ))
+        t = threading.Thread(target=download_worker, args=(target_dir, git_revision, ))
         threads.append(t)
         t.start()
     download_queue.join()
@@ -154,9 +159,11 @@ def mirror_tarballs(target_dir, git_repo, git_revision, concurrent=DEFAULT_CONCU
         download_queue.put(None)
     for t in threads:
         t.join()
-    log = "########################"
-    log += "SUMMARY OF FAILED FILES:"
-    log += "########################"
+    log = "########################\n"
+    log += "SUMMARY OF FAILED FILES:\n"
+    log += "########################\n"
     for entry in failed_entries:
-        log += "url:{}, name:{}".format(entry['url'], entry['name'])
+        log += "url:{}, name:{}\n".format(entry['url'], entry['name'])
+    with open(os.path.join(target_dir, "revisions", git_revision, "log"), "w") as f:
+        f.write(log)
     return log
