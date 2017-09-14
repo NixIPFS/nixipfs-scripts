@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+import argparse
+
+from nixipfs.mirror_tarballs import mirror_tarballs
+from nixipfs.defaults import *
+
+if __name__ == "__main__":
+   parser = argparse.ArgumentParser(description='Mirror all tarballs in a git revision')
+   parser.add_argument('--revision', required=True, type=str)
+   parser.add_argument('--dir', required=True, type=str)
+   parser.add_argument('--repo', required=True, type=str)
+   parser.add_argument('--concurrent', default=DEFAULT_CONCURRENT_DOWNLOADS, type=int)
+   args = parser.parse_args()
+   ret = mirror_tarballs(target_dir=args.dir, git_repo=args.repo, git_revision=args.revision, concurrent=args.concurrent)
+   print(ret)
