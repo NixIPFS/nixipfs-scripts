@@ -143,7 +143,9 @@ def mirror_tarballs(target_dir, tmp_dir, git_repo, git_revision, concurrent=DEFA
             repo = clone_repository(git_repo, repo_path)
         repo.reset(git_revision, GIT_RESET_HARD)
         with ccd(repo.workdir):
-            res = subprocess.run(NIX_INSTANTIATE_CMD, shell=True, stdout=subprocess.PIPE)
+            env = os.environ.copy()
+            env["NIX_PATH"] = "nixpkgs={}".format(repo.workdir)
+            res = subprocess.run(NIX_INSTANTIATE_CMD, shell=True, stdout=subprocess.PIPE, env=env)
             if res.returncode != 0:
                 print("nix instantiate failed!")
                 return
