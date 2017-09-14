@@ -11,17 +11,19 @@ from nixipfs.create_channel_release import create_channel_release
 from nixipfs.create_nixipfs import create_nixipfs
 from nixipfs.garbage_collect import garbage_collect
 from nixipfs.update_binary_cache import update_binary_cache
+from nixipfs.mirror_tarballs import mirror_tarballs
 from nixipfs.nix_helpers import NarInfo
 from glob import glob
 
 config_schema = {
     "$schema": "http://json-schema.org/schema#",
     "type" : "object",
-    "required" : ["hydra", "cache", "target_cache", "releases" ],
+    "required" : ["hydra", "cache", "target_cache", "releases", "repo" ],
     "properties": {
         "hydra": {"type": "string", "format": "uri"},
         "cache": {"type": "string", "format": "uri"},
         "target_cache": {"type": "string"},
+        "repo": {"type": "string"},
         "max_threads": {"type": "integer"},
         "max_ipfs_threads": {"type": "integer"},
         "releases": {"type": "array",
@@ -33,7 +35,8 @@ config_schema = {
                              "project": {"type": "string"},
                              "jobset" : {"type": "string"},
                              "job"    : {"type": "string"},
-                             "keep"   : {"type": "integer", "minimum": 1}
+                             "keep"   : {"type": "integer", "minimum": 1},
+                             "mirror"   : {"type": "boolean"}
                          }
                      }
         }
@@ -53,6 +56,7 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     binary_cache_dir  = os.path.join(outdir, 'binary_cache')
     channel_dir = os.path.join(outdir, 'channels')
     releases_dir = os.path.join(outdir, 'releases')
+    mirror_dir = os.path.join(outdir, 'tarballs')
     lastsync_file = os.path.join(outdir, 'lastsync')
     os.makedirs(channel_dir, exist_ok=True)
     os.makedirs(releases_dir, exist_ok=True)
@@ -77,6 +81,10 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
         if os.path.islink(channel_link):
             os.unlink(channel_link)
         os.symlink(os.path.join("../releases", release['channel'], os.path.basename(path)), channel_link)
+        if release['mirror'] == True:
+            with open(os.path.join(path, "git-revision"), 'r') as f:
+                revision = f.read().strip()
+            mirror_tarballs(mirror_dir, tmpdir, config["repo"], revision, max_threads)
 
     if not os.path.isfile(os.path.join(binary_cache_dir, 'nix-cache-info')):
         nci = NarInfo()
