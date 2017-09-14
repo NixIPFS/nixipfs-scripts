@@ -5,7 +5,7 @@ import queue
 import tempfile
 import subprocess
 import threading
-from pygit2 import clone_repository, GIT_RESET_HARD
+from pygit2 import clone_repository, GIT_RESET_HARD, Repository
 from shutil import copyfile
 
 from nixipfs.download_helpers import DownloadFailed
@@ -123,17 +123,30 @@ def nix_store_delete(path):
     res = subprocess.run("nix-store --delete {}".format(path), shell=True, stdout=subprocess.PIPE)
     return res.returncode
 
-def mirror_tarballs(target_dir, git_repo, git_revision, concurrent=DEFAULT_CONCURRENT_DOWNLOADS):
+def mirror_tarballs(target_dir, tmp_dir, git_repo, git_revision, concurrent=DEFAULT_CONCURRENT_DOWNLOADS):
     global failed_entries
     global download_queue
     create_mirror_dirs(target_dir, git_revision)
     download_queue = queue.Queue()
     threads = []
-    with tempfile.TemporaryDirectory() as temp_dir:
-        repo = clone_repository(git_repo, temp_dir)
+    repo_path = os.path.join(tmp_dir, "nixpkgs")
+    os.makedirs(repo_path, exist_ok=True)
+    with ccd(repo_path):
+        exists = False
+        try:
+            repo = Repository(os.path.join(repo_path, ".git"))
+            repo.remotes["origin"].fetch()
+            exists = True
+        except:
+            pass
+        if not exists:
+            repo = clone_repository(git_repo, repo_path)
         repo.reset(git_revision, GIT_RESET_HARD)
         with ccd(repo.workdir):
             res = subprocess.run(NIX_INSTANTIATE_CMD, shell=True, stdout=subprocess.PIPE)
+            if res.returncode != 0:
+                print("nix instantiate failed!")
+                return
             output = json.loads(res.stdout.decode('utf-8').strip())
     #    with open(os.path.join(target_dir, "tars.json"), "w") as f:
     #        f.write(json.dumps(output))
