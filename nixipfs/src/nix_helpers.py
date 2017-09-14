@@ -1,3 +1,6 @@
+import subprocess
+import os
+
 def hash_part_in_path(path):
     if path.count('/') >= 3:
         # Path in the format /nix/store/hash-name
@@ -14,6 +17,14 @@ def nar_info_from_path(path):
         return h + ".narinfo"
     else:
         return ""
+
+# TODO implement in pure python
+def nix_hash(path, hash_type="sha256", base="base32"):
+    assert(os.path.isfile(path))
+    assert(hash_type in [ "md5", "sha1", "sha256", "sha512" ])
+    assert(base      in [ "base16", "base32", "base64" ])
+    h_res = subprocess.run("nix hash-file --{} --type {} {}".format(base, hash_type, path), shell=True, stdout=subprocess.PIPE)
+    return h_res.stdout.decode('utf-8').strip()
 
 class NarInfo:
     def __init__(self, text = ""):
