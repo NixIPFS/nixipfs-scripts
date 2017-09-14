@@ -16,5 +16,6 @@ pythonPackages.buildPythonPackage rec {
     nixUnstable
     generate_programs_index
     progress
+    pygit2
   ];
 }
