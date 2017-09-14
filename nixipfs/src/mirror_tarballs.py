@@ -153,7 +153,7 @@ def mirror_tarballs(target_dir, git_repo, git_revision, concurrent=DEFAULT_CONCU
     for i in range(concurrent):
         download_queue.put(None)
     for t in threads:
-        t.join
+        t.join()
     log = "########################"
     log += "SUMMARY OF FAILED FILES:"
     log += "########################"
