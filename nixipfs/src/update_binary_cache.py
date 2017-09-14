@@ -24,10 +24,10 @@ def download_worker(binary_cache):
             except DownloadFailed:
                 break
             if os.path.isfile(work[1]):
-                h_res = subprocess.run("nix hash-file --base32 --type {} {}".format(work[2].split(':')[0], work[1]), shell=True, stdout=subprocess.PIPE)
-                if h_res.stdout.decode('utf-8').strip() == work[2].split(':')[1].strip():
+                if nix_hash(work[1], work[2].split(':')[0], "base32") == work[2].split(':')[1].strip():
                     break
                 else:
+                    print("Hash verification for {} failed. Retrying.".format(work[1]))
                     os.unlink(work[1])
         if not os.path.isfile(work[1]):
             print("Could not download {}".format(work[0]))
