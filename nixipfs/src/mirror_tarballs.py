@@ -14,8 +14,8 @@ from nixipfs.utils       import ccd
 from nixipfs.defaults    import *
 
 # For testing purposes:
-#NIX_EXPR = '(import <nixpkgs> {}).hello'
-NIX_EXPR = 'builtins.removeAttrs ((import pkgs/top-level/release.nix { scrubJobs = false; supportedSystems = [ "x86_64-linux" "x86_64-darwin" ]; })) ["unstable" "tarball" "darwin-unstable" ]'
+NIX_EXPR = '(import <nixpkgs> {}).hello'
+#NIX_EXPR = 'builtins.removeAttrs ((import pkgs/top-level/release.nix { scrubJobs = false; supportedSystems = [ "x86_64-linux" "x86_64-darwin" ]; })) ["unstable" "tarball" "darwin-unstable" ]'
 NIX_INSTANTIATE_CMD = "nix-instantiate --eval --json --strict maintainers/scripts/find-tarballs.nix --arg expr '{}'".format(NIX_EXPR)
 
 MAIN_ALGO = "sha512"
