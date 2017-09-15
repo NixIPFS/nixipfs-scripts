@@ -64,26 +64,31 @@ def mirror_file(target_dir, path, name, revision):
     main_file = make_path("sha512/{}".format(sha512_16))
 
     copyfile(path, main_file)
-    with ccd(os.path.join(target_dir, "md5")):
-        if not os.path.exists(md5_16):
-            os.symlink(os.path.relpath(main_file), md5_16)
-    with ccd(os.path.join(target_dir, "sha1")):
-        if not os.path.exists(sha1_16):
-            os.symlink(os.path.relpath(main_file), sha1_16)
-    with ccd(os.path.join(target_dir, "sha256")):
-        if not os.path.exists(sha256_16):
-            os.symlink(os.path.relpath(main_file), sha256_16)
-        if not os.path.exists(sha256_32):
-            os.symlink(os.path.relpath(main_file), sha256_32)
-    with ccd(os.path.join(target_dir, "sha512")):
-        if not os.path.exists(sha512_32):
-            os.symlink(os.path.relpath(main_file), sha512_32)
-    with ccd(os.path.join(target_dir, "by-name")):
-        if not os.path.exists(name):
-            os.symlink(os.path.relpath(main_file), name)
-    with ccd(os.path.join(target_dir, "revisions", revision)):
-        if not os.path.exists(sha512_16):
-            os.symlink(os.path.relpath(main_file), sha512_16)
+    md5_dir = os.path.join(target_dir, "md5")
+    if not os.path.exists(os.path.join(md5_dir, md5_16)):
+        os.symlink(os.path.relpath(main_file, start=md5_dir), os.path.join(md5_dir, md5_16))
+
+    sha1_dir = os.path.join(target_dir, "sha1")
+    if not os.path.exists(os.path.join(sha1_dir, sha1_16)):
+        os.symlink(os.path.relpath(main_file, start=sha1_dir), os.path.join(sha1_dir, sha1_16))
+
+    sha256_dir = os.path.join(target_dir, "sha256")
+    if not os.path.exists(os.path.join(sha256_dir, sha256_16)):
+        os.symlink(os.path.relpath(main_file, start=sha256_dir), os.path.join(sha256_dir, sha256_16))
+    if not os.path.exists(os.path.join(sha256_dir, sha256_32)):
+        os.symlink(os.path.relpath(main_file, start=sha256_dir), os.path.join(sha256_dir, sha256_32))
+
+    sha512_dir = os.path.join(target_dir, "sha512")
+    if not os.path.exists(os.path.join(sha512_dir, sha512_32)):
+        os.symlink(os.path.relpath(main_file, start=sha512_dir), os.path.join(sha512_dir, sha512_32))
+
+    by_name_dir = os.path.join(target_dir, "by-name")
+    if not os.path.exists(os.path.join(by_name_dir, name)):
+        os.symlink(os.path.relpath(main_file, start=by_name_dir), os.path.join(by_name_dir, name))
+
+    revision_dir = os.path.join(target_dir, "revisions", revision)
+    if not os.path.exists(os.path.join(revision_dir, sha512_16)):
+        os.symlink(os.path.relpath(main_file, start=revision_dir), os.path.join(revision_dir, sha512_16))
 
 def download_worker(target_dir, revision, git_workdir):
     global download_queue
