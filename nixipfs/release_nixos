@@ -53,6 +53,8 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     cache_info = {'StoreDir' : '/nix/store', 'WantMassQuery' : '1', 'Priority' : '40' }
 
     paths = []
+
+    print("Using up to {} threads".format(max_threads))
     binary_cache_dir  = os.path.join(outdir, 'binary_cache')
     channel_dir = os.path.join(outdir, 'channels')
     releases_dir = os.path.join(outdir, 'releases')
@@ -61,7 +63,9 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     os.makedirs(channel_dir, exist_ok=True)
     os.makedirs(releases_dir, exist_ok=True)
 
+
     for release in releases:
+        print("Mirroring {}".format(release))
         path = create_channel_release(channel = release['channel'],
                                       hydra   = hydra,
                                       project = release['project'],
