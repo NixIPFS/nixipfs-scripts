@@ -14,9 +14,7 @@ from nixipfs.utils       import ccd
 from nixipfs.defaults    import *
 
 # For testing purposes:
-NIX_EXPR = '(import <nixpkgs> {}).hello'
-#NIX_EXPR = 'builtins.removeAttrs ((import pkgs/top-level/release.nix { scrubJobs = false; supportedSystems = [ "x86_64-linux" "x86_64-darwin" ]; })) ["unstable" "tarball" "darwin-unstable" ]'
-NIX_INSTANTIATE_CMD = "nix-instantiate --eval --json --strict maintainers/scripts/find-tarballs.nix --arg expr '{}'".format(NIX_EXPR)
+NIX_EXPRS = [ 'builtins.removeAttrs ((import pkgs/top-level/release.nix { scrubJobs = false; supportedSystems = [ "x86_64-linux" "x86_64-darwin" ]; })) ["unstable" "tarball" "darwin-unstable" ]', '(import <nixpkgs> {}).hello' ]
 
 MAIN_ALGO = "sha512"
 MAIN_BASE = "base16"
@@ -25,6 +23,9 @@ VALID_URL_SCHEMES = [ "http:", "https:", "ftp:", "mirror:" ]
 
 failed_entries_l = threading.Lock()
 failed_entries = []
+
+def nix_instantiate_cmd(expr):
+    return "nix-instantiate --eval --json --strict maintainers/scripts/find-tarballs.nix --arg expr '{}'".format(expr)
 
 def create_mirror_dirs(target_dir, revision):
     md5_path = os.path.join(target_dir, "md5")
@@ -145,11 +146,18 @@ def mirror_tarballs(target_dir, tmp_dir, git_repo, git_revision, concurrent=DEFA
             repo = clone_repository(git_repo, repo_path)
         repo.reset(git_revision, GIT_RESET_HARD)
         with ccd(repo.workdir):
+            success = False
             env = os.environ.copy()
             env["NIX_PATH"] = "nixpkgs={}".format(repo.workdir)
-            res = subprocess.run(NIX_INSTANTIATE_CMD, shell=True, stdout=subprocess.PIPE, env=env)
-            if res.returncode != 0:
-                print("nix instantiate failed!")
+            for expr in NIX_EXPRS:
+              res = subprocess.run(nix_instantiate_cmd(expr), shell=True, stdout=subprocess.PIPE, env=env)
+              if res.returncode != 0:
+                  print("nix instantiate failed!")
+              else:
+                  success = True
+                  break
+            if success is False:
+                print("fatal: all nix instantiate processes failed!")
                 return
             output = json.loads(res.stdout.decode('utf-8').strip())
     #    with open(os.path.join(target_dir, "tars.json"), "w") as f:
