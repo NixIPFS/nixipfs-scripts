@@ -157,8 +157,7 @@ def mirror_tarballs(target_dir, tmp_dir, git_repo, git_revision, concurrent=DEFA
                   success = True
                   break
             if success is False:
-                print("fatal: all nix instantiate processes failed!")
-                return
+                return "fatal: all nix instantiate processes failed!"
             output = json.loads(res.stdout.decode('utf-8').strip())
     #    with open(os.path.join(target_dir, "tars.json"), "w") as f:
     #        f.write(json.dumps(output))
