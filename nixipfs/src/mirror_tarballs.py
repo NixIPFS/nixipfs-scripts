@@ -84,14 +84,14 @@ def mirror_file(target_dir, path, name, revision):
         if not os.path.exists(sha512_16):
             os.symlink(os.path.relpath(main_file), sha512_16)
 
-def download_worker(target_dir, revision):
+def download_worker(target_dir, revision, git_workdir):
     global download_queue
     while True:
         work = download_queue.get()
         if work is None:
             break
         try:
-            res = nix_prefetch_url(work['url'], work['hash'], work['type'])
+            res = nix_prefetch_url(work['url'], work['hash'], git_workdir, work['type'])
             mirror_file(target_dir, res['path'], work['name'], revision)
             nix_store_delete(res['path'])
         except DownloadFailed:
@@ -103,12 +103,14 @@ def append_failed_entry(entry):
     failed_entries.append(entry)
     failed_entries_l.release()
 
-def nix_prefetch_url(url, hashv, hash_type="sha256"):
+def nix_prefetch_url(url, hashv, git_workdir, hash_type="sha256"):
     assert(hash_type in [ "md5", "sha1", "sha256", "sha512" ])
     # For some reason, nix-prefetch-url stalls, the timeout kills the process
     # after 15 minutes, this should be enough for all downloads
     try:
-        res = subprocess.run("nix-prefetch-url --print-path --type {} {} {}".format(hash_type, url, hashv), shell=True, stdout=subprocess.PIPE, timeout=900)
+        env = os.environ.copy()
+        env["NIX_PATH"] = "nixpkgs={}".format(git_workdir)
+        res = subprocess.run("nix-prefetch-url --print-path --type {} {} {}".format(hash_type, url, hashv), shell=True, stdout=subprocess.PIPE, timeout=900, env=env)
     except subprocess.TimeoutExpired:
         raise DownloadFailed
     if res.returncode != 0:
@@ -166,7 +168,7 @@ def mirror_tarballs(target_dir, tmp_dir, git_repo, git_revision, concurrent=DEFA
         else:
             download_queue.put(entry)
     for i in range(concurrent):
-        t = threading.Thread(target=download_worker, args=(target_dir, git_revision, ))
+        t = threading.Thread(target=download_worker, args=(target_dir, git_revision, repo.workdir, ))
         threads.append(t)
         t.start()
     download_queue.join()
