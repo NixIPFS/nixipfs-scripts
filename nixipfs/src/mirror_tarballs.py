@@ -58,8 +58,8 @@ def mirror_file(target_dir, path, name, revision):
     sha1_16 = nix_hash(path, hash_type="sha1", base="base16")
     sha256_16 = nix_hash(path, hash_type="sha256", base="base16")
     sha256_32 = nix_hash(path, hash_type="sha256", base="base32")
-    sha512_16 = nix_hash(path, hash_type="sha256", base="base16")
-    sha512_32 = nix_hash(path, hash_type="sha256", base="base32")
+    sha512_16 = nix_hash(path, hash_type="sha512", base="base16")
+    sha512_32 = nix_hash(path, hash_type="sha512", base="base32")
 
     main_file = make_path("sha512/{}".format(sha512_16))
 
