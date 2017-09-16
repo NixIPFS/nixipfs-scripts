@@ -110,6 +110,8 @@ def download_worker(target_dir, revision, git_workdir):
         except DownloadFailed:
             append_failed_entry(work)
         download_queue.task_done()
+    for path in paths:
+        nix_store_delete(path)
 
 def append_failed_entry(entry):
     failed_entries_l.acquire()
