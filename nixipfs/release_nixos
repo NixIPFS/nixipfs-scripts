@@ -116,7 +116,7 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
         create_nixipfs(outdir, ipfsapi)
 
     with open(lastsync_file, 'w') as f:
-        f.write("{},{}".format(int(time.time()), datetime.datetime.now().isoformat()))
+        f.write("{}".format(int(time.time())))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Release all the things! (NixOS)')
