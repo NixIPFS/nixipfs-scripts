@@ -106,7 +106,8 @@ def download_worker(target_dir, revision, git_workdir):
             if (count % 42 == 0):
                 for path in paths:
                     nix_store_delete(path)
-                    paths = []
+                count=0
+                paths = []
         except DownloadFailed:
             append_failed_entry(work)
         download_queue.task_done()
