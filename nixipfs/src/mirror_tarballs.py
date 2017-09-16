@@ -5,6 +5,7 @@ import queue
 import tempfile
 import subprocess
 import threading
+import shlex
 from pygit2 import clone_repository, GIT_RESET_HARD, Repository
 from shutil import copyfile
 
@@ -126,7 +127,8 @@ def nix_prefetch_url(url, hashv, git_workdir, hash_type="sha256"):
     try:
         env = os.environ.copy()
         env["NIX_PATH"] = "nixpkgs={}".format(git_workdir)
-        res = subprocess.run("nix-prefetch-url --print-path --type {} {} {}".format(hash_type, url, hashv), shell=True, stdout=subprocess.PIPE, timeout=900, env=env)
+        escaped_url = shlex.quote(url)
+        res = subprocess.run("nix-prefetch-url --print-path --type {} {} {}".format(hash_type, escaped_url, hashv), shell=True, stdout=subprocess.PIPE, timeout=900, env=env)
     except subprocess.TimeoutExpired:
         raise DownloadFailed
     if res.returncode != 0:
