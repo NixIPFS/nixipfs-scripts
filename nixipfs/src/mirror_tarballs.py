@@ -6,6 +6,8 @@ import tempfile
 import subprocess
 import threading
 import shlex
+import hashlib
+import time
 from pygit2 import clone_repository, GIT_RESET_HARD, Repository
 from shutil import copyfile
 
@@ -48,6 +50,7 @@ def check_presence(target_dir, value):
         os.path.join(target_dir, "sha1", value),
         os.path.join(target_dir, "sha256", value),
         os.path.join(target_dir, "sha512", value),
+        # TODO: glob this
         os.path.join(target_dir, "by-name", value)
     ]
     return [ path for path in paths if os.path.exists(path) ]
@@ -83,7 +86,10 @@ def mirror_file(target_dir, path, name, revision):
     if not os.path.exists(os.path.join(sha512_dir, sha512_32)):
         os.symlink(os.path.relpath(main_file, start=sha512_dir), os.path.join(sha512_dir, sha512_32))
 
-    by_name_dir = os.path.join(target_dir, "by-name")
+    # do something semi random to avoid collisions
+    name_prefix = "{}_{}".format(revision, int(time.time()))
+    by_name_dir = os.path.join(target_dir, "by-name", name_prefix)
+    os.makedirs(by_name_dir, exist_ok=True)
     if not os.path.exists(os.path.join(by_name_dir, name)):
         os.symlink(os.path.relpath(main_file, start=by_name_dir), os.path.join(by_name_dir, name))
 
