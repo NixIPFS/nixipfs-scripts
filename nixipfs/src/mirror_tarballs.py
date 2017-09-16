@@ -92,6 +92,8 @@ def mirror_file(target_dir, path, name, revision):
 
 def download_worker(target_dir, revision, git_workdir):
     global download_queue
+    count=0
+    paths=[]
     while True:
         work = download_queue.get()
         if work is None:
@@ -99,7 +101,12 @@ def download_worker(target_dir, revision, git_workdir):
         try:
             res = nix_prefetch_url(work['url'], work['hash'], git_workdir, work['type'])
             mirror_file(target_dir, res['path'], work['name'], revision)
-            nix_store_delete(res['path'])
+            paths.append(res['path'])
+            count+=1
+            if (count % 42 == 0):
+                for path in paths:
+                    nix_store_delete(path)
+                    paths = []
         except DownloadFailed:
             append_failed_entry(work)
         download_queue.task_done()
