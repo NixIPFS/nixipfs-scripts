@@ -59,7 +59,10 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     channel_dir = os.path.join(outdir, 'channels')
     releases_dir = os.path.join(outdir, 'releases')
     mirror_dir = os.path.join(outdir, 'tarballs')
-    lastsync_file = os.path.join(outdir, 'lastsync')
+    lastsync_files = [ os.path.join(outdir, 'lastsync'),
+                       os.path.join(binary_cache_dir, 'lastsync'),
+                       os.path.join(mirror_dir, 'lastsync'),
+                       os.path.join(releases_dir, 'lastsync') ]
     os.makedirs(channel_dir, exist_ok=True)
     os.makedirs(releases_dir, exist_ok=True)
 
@@ -115,8 +118,10 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     if not (print_only or no_ipfs):
         create_nixipfs(outdir, ipfsapi)
 
-    with open(lastsync_file, 'w') as f:
-        f.write("{}".format(int(time.time())))
+    current_time = time.time()
+    for lastsync_file in lastsync_files:
+      with open(lastsync_file, 'w') as f:
+          f.write("{}".format(int(current_time)))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Release all the things! (NixOS)')
