@@ -29,7 +29,7 @@ config_schema = {
         "releases": {"type": "array",
                      "items": {
                          "type": "object",
-                         "required" : [ "channel", "project", "jobset" ],
+                         "required" : [ "channel", "project", "jobset", "mirror" ],
                          "properties" : {
                              "channel": {"type": "string"},
                              "project": {"type": "string"},
