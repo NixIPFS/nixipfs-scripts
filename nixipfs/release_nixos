@@ -61,6 +61,7 @@ def release_nixos(outdir, tmpdir, ipfsapi, print_only, no_ipfs, gc, config):
     mirror_dir = os.path.join(outdir, 'tarballs')
     lastsync_files = [ os.path.join(outdir, 'lastsync'),
                        os.path.join(binary_cache_dir, 'lastsync'),
+                       os.path.join(channel_dir, 'lastsync'),
                        os.path.join(mirror_dir, 'lastsync'),
                        os.path.join(releases_dir, 'lastsync') ]
     os.makedirs(channel_dir, exist_ok=True)
