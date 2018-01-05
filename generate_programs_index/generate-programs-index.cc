@@ -7,7 +7,6 @@
 #include "globals.hh"
 #include "eval.hh"
 #include "store-api.hh"
-#include "common-opts.hh"
 #include "get-drvs.hh"
 #include "thread-pool.hh"
 #include "sqlite.hh"
